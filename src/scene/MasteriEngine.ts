@@ -195,8 +195,8 @@ export class MasteriEngine {
     this.sunLight.castShadow = !this.isSoftwareGl;
     this.sunLight.shadow.mapSize.set(2048, 2048);
     this.sunLight.shadow.camera.near = 20;
-    this.sunLight.shadow.camera.far = 650;
-    const d = 240;
+    this.sunLight.shadow.camera.far = 820;
+    const d = 310;
     this.sunLight.shadow.camera.left = -d;
     this.sunLight.shadow.camera.right = d;
     this.sunLight.shadow.camera.top = d;
@@ -588,18 +588,18 @@ export class MasteriEngine {
     // Clamp world bounds & keep above ground (human eye-level minimum 1.65m)
     this.camera.position.x = THREE.MathUtils.clamp(
       this.camera.position.x,
-      -420,
-      420,
+      -540,
+      540,
     );
     this.camera.position.y = THREE.MathUtils.clamp(
       this.camera.position.y,
       1.65,
-      360,
+      380,
     );
     this.camera.position.z = THREE.MathUtils.clamp(
       this.camera.position.z,
-      -320,
-      340,
+      -380,
+      380,
     );
   }
 

@@ -130,9 +130,16 @@ export function buildLandscape(
   );
   const sandBeachMat = trackMat(
     new THREE.MeshStandardMaterial({
-      color: 0xe6dcc8,
+      color: 0xe4d4b7,
       roughness: 0.82,
       metalness: 0.02,
+    }),
+  );
+  const hedgeMat = trackMat(
+    new THREE.MeshStandardMaterial({
+      color: 0x3f6b32,
+      roughness: 0.9,
+      metalness: 0.0,
     }),
   );
   const poolTileMat = trackMat(
@@ -180,7 +187,7 @@ export function buildLandscape(
 
   // --- 1. Continuous Horizon Ground & Road Grid ---
   const horizonGround = new THREE.Mesh(
-    trackGeo(new THREE.PlaneGeometry(1800, 1800)),
+    trackGeo(new THREE.PlaneGeometry(2200, 2200)),
     outerGroundMat,
   );
   horizonGround.rotation.x = -Math.PI / 2;
@@ -188,9 +195,9 @@ export function buildLandscape(
   horizonGround.receiveShadow = true;
   root.add(horizonGround);
 
-  // Site Asphalt Base Slab (under all roads & blocks)
+  // Site Asphalt Base Slab (576m x 202m, covering X in [-288, +288], Z in [-103, +99])
   const siteAsphalt = new THREE.Mesh(
-    trackGeo(new THREE.BoxGeometry(444, 0.1, 184)),
+    trackGeo(new THREE.BoxGeometry(576, 0.1, 202)),
     asphaltMat,
   );
   siteAsphalt.position.set(0, 0.0, -2);
@@ -205,16 +212,16 @@ export function buildLandscape(
     }),
   );
   const contextPositions: [number, number, number, number, number][] = [
-    [-290, -40, 48, 12, 60],
-    [-295, 50, 52, 16, 48],
-    [290, -35, 48, 14, 58],
-    [295, 45, 54, 18, 46],
-    [-140, -145, 95, 14, 34],
-    [0, -148, 110, 18, 36],
-    [140, -145, 95, 14, 34],
-    [-140, 145, 90, 12, 32],
-    [0, 148, 100, 12, 32],
-    [140, 145, 90, 12, 32],
+    [-360, -40, 56, 14, 68],
+    [-365, 50, 58, 16, 54],
+    [360, -35, 56, 14, 66],
+    [365, 45, 58, 18, 52],
+    [-190, -160, 115, 14, 36],
+    [0, -162, 130, 18, 36],
+    [190, -160, 115, 14, 36],
+    [-190, 160, 110, 12, 34],
+    [0, 162, 125, 12, 34],
+    [190, 160, 110, 12, 34],
   ];
   contextPositions.forEach(([cx, cz, cw, ch, cd]) => {
     const m = new THREE.Mesh(
@@ -236,49 +243,64 @@ export function buildLandscape(
     root.add(m);
   };
 
-  // North Boulevard dashed center markings (top carriageways z=-84 & z=-74)
-  for (let x = -205; x <= 205; x += 12) {
-    addRoadStripe(x, -83.5, 5.2, 0.25);
-    addRoadStripe(x, -74.5, 5.2, 0.25);
+  // North Boulevard dashed center markings (top carriageways z=-87 & z=-76)
+  for (let x = -270; x <= 270; x += 13) {
+    addRoadStripe(x, -87, 5.4, 0.25);
+    addRoadStripe(x, -76, 5.4, 0.25);
   }
   // North Boulevard center median island
   const median = new THREE.Mesh(
-    trackGeo(new THREE.BoxGeometry(412, 0.22, 3.2)),
+    trackGeo(new THREE.BoxGeometry(556, 0.22, 3.2)),
     lawnMat,
   );
-  median.position.set(0, 0.11, -79);
+  median.position.set(0, 0.11, -81.5);
   median.receiveShadow = true;
   root.add(median);
 
+  // Internal East-West street center markings (z = 21)
+  for (let x = -260; x <= 260; x += 12) {
+    if (
+      Math.abs(x - -87.5) > 7 &&
+      Math.abs(x - 87.5) > 7 &&
+      Math.abs(x - -268) > 7 &&
+      Math.abs(x - 268) > 7
+    ) {
+      addRoadStripe(x, 21, 4.6, 0.22);
+    }
+  }
+
   // Vertical avenue center markings
-  const avenueXs = [-205, -67, 67, 205];
+  const avenueXs = [-268, -87.5, 87.5, 268];
   avenueXs.forEach((ax) => {
-    for (let z = -66; z <= 76; z += 10) {
-      addRoadStripe(ax, z, 0.25, 4.8);
+    for (let z = -66; z <= 88; z += 10) {
+      if (Math.abs(z - 21) > 4.5) {
+        addRoadStripe(ax, z, 0.25, 4.8);
+      }
     }
     // Crosswalks at North Boulevard & internal road
     for (let dx = -4.5; dx <= 4.5; dx += 1.5) {
-      addRoadStripe(ax + dx, -69.5, 0.7, 2.8);
-      addRoadStripe(ax + dx, 12, 0.7, 2.4);
+      addRoadStripe(ax + dx, -70, 0.7, 2.6);
+      addRoadStripe(ax + dx, 21, 0.7, 2.4);
     }
   });
 
   // --- 2. Raised Masterplan Blocks (Zones S, C, N — Upper & Lower) ---
+  // Exact 1:1 proportions from masterplanData.ts:
+  // S: x in [-261, -93] (w 168), C: x in [-82, +82] (w 164), N: x in [+93, +261] (w 168)
+  // Upper: z in [-69, +17.5] (d 86.5), Lower: z in [+24.5, +88] (d 63.5)
   const blockDefs = [
-    // Upper residential courtyard podiums
-    { x: -136, z: -30.5, w: 122, d: 77 }, // Zone S upper
-    { x: 0, z: -30.5, w: 118, d: 77 },    // Zone C upper
-    { x: 136, z: -30.5, w: 122, d: 77 },  // Zone N upper
-    // Lower parks & sports blocks
-    { x: -136, z: 45.5, w: 122, d: 59 },  // Zone S lower
-    { x: 0, z: 45.5, w: 118, d: 59 },     // Zone C lower
-    { x: 136, z: 45.5, w: 122, d: 59 },   // Zone N lower
+    { x: -177, z: -25.75, w: 168, d: 86.5 }, // Zone S upper
+    { x: 0, z: -25.75, w: 164, d: 86.5 },    // Zone C upper
+    { x: 177, z: -25.75, w: 168, d: 86.5 },  // Zone N upper
+    { x: -177, z: 56.25, w: 168, d: 63.5 },  // Zone S lower
+    { x: 0, z: 56.25, w: 164, d: 63.5 },     // Zone C lower
+    { x: 177, z: 56.25, w: 168, d: 63.5 },   // Zone N lower
   ];
 
   blockDefs.forEach((b) => {
     // Stone perimeter curb/sidewalk apron
     const curb = new THREE.Mesh(
-      trackGeo(new THREE.BoxGeometry(b.w + 3.2, 0.16, b.d + 3.2)),
+      trackGeo(new THREE.BoxGeometry(b.w + 2.6, 0.16, b.d + 2.6)),
       curbMat,
     );
     curb.position.set(b.x, 0.08, b.z);
@@ -313,6 +335,18 @@ export function buildLandscape(
     return m;
   };
 
+  // Helper to add low trimmed hedge borders
+  const addHedge = (x: number, z: number, w: number, d: number, h = 0.65) => {
+    const m = new THREE.Mesh(
+      trackGeo(new THREE.BoxGeometry(w, h, d)),
+      hedgeMat,
+    );
+    m.position.set(x, 0.2 + h * 0.5, z);
+    m.castShadow = !isSoftwareGl;
+    m.receiveShadow = true;
+    root.add(m);
+  };
+
   // Helper to add a winding spline walkway ribbon
   const addCurvedPath = (
     pts: [number, number][],
@@ -323,7 +357,7 @@ export function buildLandscape(
     const curve = new THREE.CatmullRomCurve3(
       pts.map(([px, pz]) => new THREE.Vector3(px, 0, pz)),
     );
-    const steps = 40;
+    const steps = 44;
     const sampled = curve.getPoints(steps);
     const positions: number[] = [];
     const normals: number[] = [];
@@ -385,7 +419,7 @@ export function buildLandscape(
       const rimGeo = trackGeo(new THREE.ShapeGeometry(shape, 36));
       rimGeo.rotateX(-Math.PI / 2);
       const rim = new THREE.Mesh(rimGeo, sandBeachMat);
-      rim.scale.set(1.14, 1, 1.14);
+      rim.scale.set(1.15, 1, 1.15);
       rim.position.set(cx, 0.23, cz);
       rim.receiveShadow = true;
       root.add(rim);
@@ -478,7 +512,17 @@ export function buildLandscape(
   };
 
   // Helper for Tennis/Pickleball Court with 3D Net
-  const addTennisCourt = (x: number, z: number, w: number, d: number) => {
+  const addTennisCourt = (
+    x: number,
+    z: number,
+    w: number,
+    d: number,
+    rotY = 0,
+  ) => {
+    const cGroup = new THREE.Group();
+    cGroup.position.set(x, 0.23, z);
+    cGroup.rotation.y = rotY;
+
     const mat = trackMat(
       new THREE.MeshStandardMaterial({
         map: tennisTex,
@@ -489,11 +533,10 @@ export function buildLandscape(
       trackGeo(new THREE.BoxGeometry(w, 0.08, d)),
       mat,
     );
-    court.position.set(x, 0.23, z);
     court.receiveShadow = true;
-    root.add(court);
+    cGroup.add(court);
 
-    // 3D Net + Posts
+    // 3D Net + Tape
     const netMat = trackMat(
       new THREE.MeshStandardMaterial({
         color: 0xe5e7eb,
@@ -504,25 +547,29 @@ export function buildLandscape(
       }),
     );
     const netMesh = new THREE.Mesh(
-      trackGeo(new THREE.PlaneGeometry(w * 0.76, 0.95)),
+      trackGeo(new THREE.PlaneGeometry(0.95, d * 0.76)),
       netMat,
     );
-    netMesh.position.set(x, 0.74, z);
-    root.add(netMesh);
+    netMesh.rotation.y = Math.PI / 2;
+    netMesh.rotation.z = Math.PI / 2;
+    netMesh.position.y = 0.51;
+    cGroup.add(netMesh);
 
     const tape = new THREE.Mesh(
-      trackGeo(new THREE.BoxGeometry(w * 0.76, 0.08, 0.06)),
+      trackGeo(new THREE.BoxGeometry(0.06, 0.08, d * 0.76)),
       roadLineMat,
     );
-    tape.position.set(x, 1.22, z);
-    root.add(tape);
+    tape.position.y = 0.99;
+    cGroup.add(tape);
+
+    root.add(cGroup);
   };
 
   // Helper for Gazebo / Garden Pavilion (composite 3-part: floor + columns + roof)
   const addPavilion = (
     x: number,
     z: number,
-    radius = 3.4,
+    radius = 3.2,
     roofColor = 0x3b332d,
     isOval = false,
   ) => {
@@ -545,12 +592,12 @@ export function buildLandscape(
     for (let i = 0; i < cols; i++) {
       const ang = (i / cols) * Math.PI * 2;
       const col = new THREE.Mesh(
-        trackGeo(new THREE.CylinderGeometry(0.14, 0.16, 3.2, 8)),
+        trackGeo(new THREE.CylinderGeometry(0.13, 0.15, 3.0, 8)),
         colMat,
       );
       col.position.set(
         Math.cos(ang) * (radius * 0.78),
-        1.7,
+        1.6,
         Math.sin(ang) * (radius * 0.78),
       );
       col.castShadow = true;
@@ -565,10 +612,10 @@ export function buildLandscape(
       }),
     );
     const roof = new THREE.Mesh(
-      trackGeo(new THREE.ConeGeometry(radius * 1.22, 1.6, isOval ? 24 : 6)),
+      trackGeo(new THREE.ConeGeometry(radius * 1.22, 1.5, isOval ? 24 : 6)),
       roofMat,
     );
-    roof.position.y = 4.0;
+    roof.position.y = 3.8;
     roof.castShadow = true;
     if (isOval) roof.scale.set(1.5, 0.75, 0.95);
     pGroup.add(roof);
@@ -577,6 +624,34 @@ export function buildLandscape(
       floor.scale.set(1.5, 1, 0.95);
     }
     root.add(pGroup);
+  };
+
+  // Helper for rectangular shaded cabana (wood base + 4 posts + flat/hipped canopy)
+  const addCabana = (x: number, z: number, w = 3.2, d = 3.6, roofColor = 0x3b332d) => {
+    const cg = new THREE.Group();
+    cg.position.set(x, 0.25, z);
+    const base = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.18, d)), woodMat);
+    base.position.y = 0.09;
+    cg.add(base);
+
+    const postMat = trackMat(new THREE.MeshStandardMaterial({ color: 0x4b382d, roughness: 0.6 }));
+    [
+      [-w * 0.42, -d * 0.42],
+      [w * 0.42, -d * 0.42],
+      [-w * 0.42, d * 0.42],
+      [w * 0.42, d * 0.42],
+    ].forEach(([px, pz]) => {
+      const p = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 2.6, 0.14)), postMat);
+      p.position.set(px, 1.4, pz);
+      cg.add(p);
+    });
+
+    const roofMat = trackMat(new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.7 }));
+    const roof = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.5, 0.28, d + 0.5)), roofMat);
+    roof.position.y = 2.8;
+    roof.castShadow = true;
+    cg.add(roof);
+    root.add(cg);
   };
 
   // Helper for colorful playground pad
@@ -611,228 +686,400 @@ export function buildLandscape(
   };
 
   // =========================================================================
-  // 3. ZONE S LANDSCAPE (x ∈ [-198, -74])
+  // 3. ZONE S LANDSCAPE (x ∈ [-261, -93], center -177)
   // =========================================================================
-  // Courtyard walkways & tower plazas
-  addPlaza(-136, -34, 72, 16, stoneMat, 0.2);
+  // Internal drop-off drive & roundabout around S2 & S3 (NW entrance + under S3)
   addCurvedPath(
     [
-      [-174, -22],
-      [-156, -32],
-      [-136, -38],
-      [-110, -28],
-      [-98, -14],
+      [-218, -69],
+      [-218, -50],
+      [-224, -43],
+      [-202, -41.5],
+      [-150, -41.5],
+      [-142, -52],
+      [-142, -69],
     ],
-    3.6,
+    5.0,
+    asphaltMat,
+    0.19,
   );
-  // Zone S Basketball Court & 2 Mini Courts
-  addBasketballCourt(-142, -25, 22, 12, 'S');
-  addTennisCourt(-115, -24, 9, 13);
-  // Zone S Resort Swimming Pool + Wood Deck + Splash Lagoon
-  addPlaza(-138, -2, 56, 20, woodMat, 0.22);
-  addRectPool(-132, -2, 34, 10);
-  addOrganicLagoon(-158, -1, [
-    [-11, -5],
-    [0, -7],
-    [10, -3],
-    [8, 6],
-    [-4, 7],
+  addCurvedPath(
+    [
+      [-224, -43],
+      [-216, -34],
+      [-216, -24],
+    ],
+    4.2,
+    asphaltMat,
+    0.19,
+  );
+
+  // NW Adventure Playground (x = -242, z = -56)
+  addPlaygroundZone(-245, -56, 6.2, 0xc96f55);
+  addPlaygroundZone(-236, -54, 4.4, 0x4ca3a8);
+  addCurvedPath(
+    [
+      [-254, -52],
+      [-245, -60],
+      [-234, -55],
+      [-226, -58],
+    ],
+    2.4,
+    sandBeachMat,
+    0.22,
+  );
+
+  // NE Sandy Garden Plaza (x = -119, z = -55)
+  const neSandShape = makeOrganicShape([
+    [-13, -6],
+    [0, -8],
+    [13, -4],
+    [10, 7],
+    [-4, 8],
     [-12, 3],
   ]);
-  // Pocket playgrounds NW & NE of Zone S
-  addPlaygroundZone(-181, -58, 7.5, 0xc97b59);
-  addPlaza(-95, -56, 18, 13, sandBeachMat, 0.21);
+  const neSandGeo = trackGeo(new THREE.ShapeGeometry(neSandShape, 32));
+  neSandGeo.rotateX(-Math.PI / 2);
+  const neSandMesh = new THREE.Mesh(neSandGeo, sandBeachMat);
+  neSandMesh.position.set(-119, 0.22, -55);
+  neSandMesh.receiveShadow = true;
+  root.add(neSandMesh);
 
-  // Zone S Lower: Huge Manicured Event Lawn + Curved Amphitheater Bleachers
+  // Courtyard paths & plaza under S3
+  addPlaza(-181.5, -43, 56, 6.5, stoneMat, 0.21);
+  addCurvedPath(
+    [
+      [-216, -24],
+      [-194, -22],
+      [-168, -28],
+      [-148, -22],
+      [-136, -15],
+    ],
+    3.0,
+  );
+
+  // Zone S Terracotta Basketball Court (x = -194, z = -31)
+  addBasketballCourt(-194, -31, 20, 11, 'S');
+  addHedge(-194, -24.5, 20, 1.0);
+
+  // 2 Mini Pickleball/Multi Courts (x = -142, z = -34)
+  addTennisCourt(-146, -34, 7.2, 10.5);
+  addTennisCourt(-137, -34, 7.2, 10.5);
+
+  // Tan/Sand Multi-Use Plaza west of S1 (x = -135, z = -5, clear of S1 slanted wing)
+  addPlaza(-135, -5, 18, 12, sandBeachMat, 0.22);
+
+  // 3 Dark-Roofed Garden Cabanas overlooking the pool (z = -15)
+  addCabana(-195, -15, 3.4, 3.6);
+  addCabana(-180, -15, 3.4, 3.6);
+  addCabana(-165, -15, 3.4, 3.6);
+
+  // Zone S Resort Swimming Pool Complex (z = +5)
+  addPlaza(-180, 2, 54, 18, woodMat, 0.22);
+  addRectPool(-180, 6, 44, 10);
+  // Organic West Lounge Lagoon
+  addOrganicLagoon(-210, 4, [
+    [-14, -5],
+    [-2, -7],
+    [10, -4],
+    [12, 5],
+    [-2, 7],
+    [-13, 4],
+  ]);
+  // East Pool Extension + Colorful Kids Splash Pad
+  addOrganicLagoon(-150, 5, [
+    [-9, -4],
+    [2, -6],
+    [10, -2],
+    [8, 6],
+    [-4, 6],
+  ]);
+  addPlaygroundZone(-130, 10, 5.4, 0xd45b48);
+  addPlaygroundZone(-124, 9, 3.6, 0x4ca8b0);
+
+  // Zone S Lower: Large Event Lawn + 4-tier Curved Amphitheater + South Lagoon
   const eventLawnMat = trackMat(
     new THREE.MeshStandardMaterial({ color: 0x62963e, roughness: 0.9 }),
   );
-  addPlaza(-133, 34, 100, 32, eventLawnMat, 0.21);
-  // 4-tier stepped curved stone amphitheater along west edge of Event Lawn
+  addPlaza(-172, 43, 134, 32, eventLawnMat, 0.21);
+  // 4-tier stepped amphitheater along west edge of Event Lawn
   for (let tier = 0; tier < 4; tier++) {
     const step = new THREE.Mesh(
-      trackGeo(new THREE.BoxGeometry(1.4, 0.42 * (4 - tier), 28 - tier * 1.5)),
+      trackGeo(new THREE.BoxGeometry(1.5, 0.42 * (4 - tier), 28 - tier * 1.5)),
       stoneMat,
     );
-    step.position.set(-188 + tier * 1.4, 0.2 + 0.21 * (4 - tier), 34);
+    step.position.set(-246 + tier * 1.5, 0.2 + 0.21 * (4 - tier), 43);
     step.castShadow = true;
     step.receiveShadow = true;
     root.add(step);
   }
-  // Zone S Lower Lagoon Pool + Winding Playground Walkways
+  addPlaza(-253, 44, 7, 12, stoneMat, 0.22);
+
+  // South Lagoon Pool with sandy beach rim (x = -222, z = 74)
   addOrganicLagoon(
-    -168,
-    63,
+    -222,
+    74,
     [
-      [-18, -5],
-      [-4, -8],
-      [14, -5],
-      [18, 3],
-      [4, 8],
-      [-14, 6],
+      [-20, -5],
+      [-5, -8],
+      [15, -5],
+      [20, 3],
+      [5, 8],
+      [-15, 6],
     ],
     true,
   );
   addCurvedPath(
     [
-      [-145, 64],
-      [-128, 57],
-      [-110, 66],
-      [-90, 58],
+      [-192, 74],
+      [-172, 67],
+      [-148, 76],
+      [-122, 68],
+      [-102, 74],
     ],
     3.2,
   );
-  addPlaygroundZone(-124, 63, 7, 0xd48ca3);
-  addPlaygroundZone(-102, 62, 6, 0x56a3a6);
+  addPlaygroundZone(-168, 73, 7.2, 0xd48ca3);
+  addPlaygroundZone(-136, 73, 6.5, 0x56a3a6);
+  addPlaygroundZone(-112, 72, 5.5, 0xdfc15a);
 
   // =========================================================================
-  // 4. ZONE C LANDSCAPE (x ∈ [-60, +60])
+  // 4. ZONE C LANDSCAPE (x ∈ [-82, +82], center 0)
   // =========================================================================
-  // C Courtyard: Pickleball courts + circular plaza + Navy Basketball Court
-  addTennisCourt(-45, -31, 8.5, 13);
-  addTennisCourt(-35, -31, 8.5, 13);
-  addPlaza(-22, -26, 10, 10, stoneMat, 0.22);
-  addBasketballCourt(-35, -8, 22, 12, 'C');
-
-  // C Signature Stepped Linear Infinity Pool + Timber Bridges
-  addPlaza(16, -28, 52, 18, woodMat, 0.22);
-  addRectPool(14, -27, 42, 9.5);
-  // 2 Timber pedestrian bridges crossing the C Infinity Pool
-  addPlaza(6, -27, 2.8, 11.5, woodMat, 0.36);
-  addPlaza(22, -27, 2.8, 11.5, woodMat, 0.36);
-  addPavilion(38, -28, 3.2, 0x4b5563);
-
-  // East colorful kids playground beside C2
-  addPlaygroundZone(38, 1, 8.5, 0xd4a45a);
+  // Internal drop-off drive connecting West Avenue (-82) into courtyard below C3 & above BBall
   addCurvedPath(
     [
-      [-46, -44],
-      [-12, -38],
-      [16, -40],
-      [44, -44],
+      [-82, -16],
+      [-52, -16],
+      [-22, -16],
+      [-18, -28],
+      [-18, -42],
     ],
-    3.2,
+    4.6,
+    asphaltMat,
+    0.19,
   );
-
-  // Zone C Lower: CENTRAL TRINITY PARK
-  // Hero organic resort lagoon with sandy beach entry & crossing bridge
-  addOrganicLagoon(
-    -3,
-    40,
-    [
-      [-23, -4],
-      [-10, -13],
-      [6, -9],
-      [22, -11],
-      [25, 2],
-      [10, 11],
-      [-8, 9],
-      [-22, 8],
-    ],
-    true,
-  );
-  // Arched wood bridge over lagoon
-  addPlaza(-1, 40, 2.6, 18, woodMat, 0.42, 0.25);
-  // Iconic white oval architectural pavilion beside Central Lagoon
-  addPavilion(11, 53, 3.8, 0xf3f4f6, true);
-  // Dual circular colorful splash/play pads on east side of Central Park
-  addPlaygroundZone(33, 42, 7.2, 0xdfc15a);
-  addPlaygroundZone(47, 45, 5.5, 0x4eb8c7);
-  // Garden gazebos along south border
-  addPavilion(-25, 65, 2.8, 0x3b332d);
-  addPavilion(25, 65, 2.8, 0x3b332d);
-  addPavilion(40, 65, 2.8, 0x3b332d);
-  // Winding Central Park stone promenade
+  // Open Central North Promenade between C3 and C1 (x in [-23, +25])
   addCurvedPath(
     [
-      [-52, 24],
-      [-30, 34],
-      [-18, 56],
-      [12, 62],
-      [48, 54],
-      [52, 28],
+      [-20, -64],
+      [0, -56],
+      [20, -64],
     ],
     3.4,
   );
+  addPlaza(1, -55, 20, 9, stoneMat, 0.21);
 
-  // =========================================================================
-  // 5. ZONE N LANDSCAPE (x ∈ [+74, +198])
-  // =========================================================================
-  // NW circular fountain plaza
-  addPlaza(92, -57, 13, 13, stoneMat, 0.21);
-  addRectPool(92, -57, 6, 6);
+  // West Side: 2 Red/Teal Pickleball Courts + Circular Sandy/Wood Pavilion
+  addTennisCourt(-68, -31, 7.5, 11.5);
+  addTennisCourt(-59, -31, 7.5, 11.5);
+  addPlaza(-41, -29, 13, 13, sandBeachMat, 0.21);
+  addPavilion(-41, -29, 3.8, 0x6b4f3b);
 
-  // N Courtyard Multi-Level Tropical Resort Pool & Lazy River
-  addPlaza(134, -22, 46, 18, woodMat, 0.22);
-  addRectPool(132, -23, 34, 9);
-  addOrganicLagoon(
-    148,
-    -3,
-    [
-      [-18, -6],
-      [0, -9],
-      [16, -4],
-      [14, 8],
-      [-2, 10],
-      [-16, 5],
-    ],
-    false,
-  );
-  // Bridge across N pool
-  addPlaza(148, -4, 16, 2.4, woodMat, 0.36, -0.2);
-  addPlaygroundZone(112, -1, 7.5, 0x62a8ac);
+  // Dark Navy/Orange Basketball Court (x = -56, z = +1) framed by hedges
+  addBasketballCourt(-56, 1, 24, 13, 'C');
+  addHedge(-56, -6.5, 24, 1.0);
+  addHedge(-56, 8.5, 24, 1.0);
+
+  // Center-East Side: Signature Stepped Linear Infinity Pool + Timber Sky-Bridge + 5 Cabanas
+  addPlaza(16, -28, 56, 16, woodMat, 0.22);
+  addRectPool(-2, -35, 18, 14);
+  addRectPool(18, -27, 46, 9);
+  // Straight elevated sky-bridge walkway connecting pool deck south straight to C2
+  addPlaza(2, -16, 3.2, 16, stoneMat, 0.36);
+  // Row of 5 Poolside Cabanas along south edge of infinity pool
+  [6, 12.5, 19, 25.5, 32].forEach((cx) => {
+    addCabana(cx, -19, 2.4, 2.8, 0x4b5563);
+  });
+
+  // East Side: Rectangular manicured lawn & sandy court + East Kids Adventure Playground
+  addPlaza(58, -28, 18, 11, sandBeachMat, 0.21);
   addCurvedPath(
     [
-      [98, -32],
-      [118, -38],
-      [144, -36],
-      [172, -26],
+      [44, -44],
+      [62, -38],
+      [68, -14],
+      [54, -4],
     ],
-    3.2,
+    2.8,
   );
+  addPlaygroundZone(46, 3, 7.2, 0xd4a45a);
+  addPlaygroundZone(58, 5, 5.8, 0x4ca8b0);
+  addPlaygroundZone(66, 0, 4.5, 0xd47b59);
 
-  // Zone N Lower: 9 TENNIS / PICKLEBALL COURTS (4 pairs + 1 single on East!)
-  const courtCols = [88, 112, 136, 160];
-  courtCols.forEach((cx) => {
-    addTennisCourt(cx, 25.5, 19, 11.5);
-    addTennisCourt(cx, 39.5, 19, 11.5);
-  });
-  // 9th single court on East side
-  addTennisCourt(184, 32.5, 18, 12);
-
-  // Zone N Lower: Zen Waterfront Lagoon Park + Gazebos
+  // Zone C Lower: CENTRAL TRINITY PARK (x ∈ [-82, +82], z ∈ [24.5, 88])
+  // Hero organic resort lagoon (~54m x 24m) with sandy beach rim & arched bridge
   addOrganicLagoon(
-    148,
-    63,
+    -4,
+    51,
     [
-      [-24, -4],
-      [-8, -7],
-      [12, -5],
-      [24, -2],
-      [20, 6],
-      [2, 7],
-      [-18, 5],
+      [-27, -4],
+      [-12, -13],
+      [8, -10],
+      [25, -12],
+      [28, 3],
+      [12, 12],
+      [-10, 10],
+      [-26, 8],
     ],
     true,
   );
-  addPavilion(136, 56, 2.8, 0x3b332d);
-  addPavilion(156, 56, 2.8, 0x3b332d);
+  // Arched wood bridge crossing the lagoon
+  addPlaza(-2, 51, 2.8, 22, woodMat, 0.42, 0.22);
+  // Iconic white oval architectural pavilion beside Central Lagoon
+  addPavilion(15, 66, 4.0, 0xf3f4f6, true);
+  // Dual circular colorful splash pads on east side of Central Park
+  addPlaygroundZone(48, 52, 7.6, 0xdfc15a);
+  addPlaygroundZone(64, 56, 6.0, 0x4eb8c7);
+  // 4 Garden gazebos along south border
+  addPavilion(-36, 79, 2.8, 0x3b332d);
+  addPavilion(-10, 79, 2.8, 0x3b332d);
+  addPavilion(32, 79, 2.8, 0x3b332d);
+  addPavilion(52, 79, 2.8, 0x3b332d);
+  // Winding Central Park stone promenade
   addCurvedPath(
     [
-      [82, 62],
-      [104, 56],
-      [124, 65],
-      [176, 62],
+      [-72, 32],
+      [-46, 42],
+      [-28, 68],
+      [12, 74],
+      [58, 66],
+      [72, 34],
+    ],
+    3.6,
+  );
+
+  // =========================================================================
+  // 5. ZONE N LANDSCAPE (x ∈ [+93, +261], center +177)
+  // =========================================================================
+  // Internal drop-off drive between N2 & N3
+  addCurvedPath(
+    [
+      [140, -69],
+      [140, -42],
+      [178, -42],
+      [208, -42],
+    ],
+    4.6,
+    asphaltMat,
+    0.19,
+  );
+
+  // NW Circular Water/Fountain Plaza (x = +116, z = -56)
+  const fountainApron = new THREE.Mesh(
+    trackGeo(new THREE.CylinderGeometry(8.5, 8.8, 0.08, 28)),
+    stoneMat,
+  );
+  fountainApron.position.set(116, 0.21, -56);
+  fountainApron.receiveShadow = true;
+  root.add(fountainApron);
+  const fountainWater = new THREE.Mesh(
+    trackGeo(new THREE.CylinderGeometry(4.2, 4.2, 0.14, 24)),
+    waterMat,
+  );
+  fountainWater.position.set(116, 0.28, -56);
+  root.add(fountainWater);
+
+  // NE Tropical Pocket Park (x = +234, z = -55)
+  addCurvedPath(
+    [
+      [212, -52],
+      [228, -58],
+      [246, -54],
+      [254, -44],
+    ],
+    2.6,
+    sandBeachMat,
+    0.22,
+  );
+
+  // Multi-Level Resort Pool & Lazy River
+  addPlaza(175, -23, 42, 15, woodMat, 0.22);
+  addRectPool(175, -22, 32, 9);
+  addOrganicLagoon(
+    204,
+    3,
+    [
+      [-18, -8],
+      [-4, -12],
+      [14, -5],
+      [13, 8],
+      [-4, 11],
+      [-17, 6],
+    ],
+    false,
+  );
+  // Connecting channel & Timber Bridge across Zone N lagoon
+  addOrganicLagoon(191, -11, [
+    [-10, -5],
+    [4, -6],
+    [12, 2],
+    [4, 8],
+    [-8, 5],
+  ]);
+  addPlaza(204, -5, 16, 2.6, woodMat, 0.36, -0.22);
+  // 3 Poolside Cabanas
+  addCabana(168, -7, 3.0, 3.4);
+  addCabana(176, -7, 3.0, 3.4);
+  addCabana(184, -7, 3.0, 3.4);
+
+  // Lower-Center Sports & Splash Zone (right of N2)
+  addTennisCourt(139, -13, 10, 7.2);
+  addTennisCourt(139, -4, 10, 7.2);
+  addPlaygroundZone(138, 8, 8.0, 0x4ea8b8);
+  addPlaygroundZone(155, 5, 5.2, 0xd47b59);
+  addCurvedPath(
+    [
+      [132, -32],
+      [158, -36],
+      [188, -34],
+      [212, -26],
     ],
     3.0,
   );
-  addPlaygroundZone(95, 63, 6.5, 0xc78bb2);
+
+  // Zone N Lower: 9 TENNIS COURTS (4 pairs at x=112, 144, 176, 208 in rows z=35 & 49 + 9th at x=242, z=42)
+  const courtCols = [112, 144, 176, 208];
+  courtCols.forEach((cx) => {
+    addTennisCourt(cx, 35, 24, 11.5);
+    addTennisCourt(cx, 49, 24, 11.5);
+  });
+  // 9th single court on East side
+  addTennisCourt(242, 42, 23, 12);
+
+  // Zone N Lower: South Zen Waterfront Lagoon Park + Gazebos + West Playground
+  addOrganicLagoon(
+    194,
+    74,
+    [
+      [-26, -4],
+      [-8, -7],
+      [12, -6],
+      [26, -2],
+      [22, 6],
+      [2, 7],
+      [-20, 5],
+    ],
+    true,
+  );
+  addPavilion(178, 66, 2.8, 0x3b332d);
+  addPavilion(210, 66, 2.8, 0x3b332d);
+  addCurvedPath(
+    [
+      [104, 74],
+      [134, 67],
+      [162, 76],
+      [230, 72],
+      [252, 66],
+    ],
+    3.2,
+  );
+  addPlaygroundZone(122, 73, 6.8, 0xc78bb2);
+  addPlaygroundZone(244, 72, 5.5, 0xd9a85c);
 
   // =========================================================================
   // 6. INSTANCED COMPOSITE TREES, PALMS, PARASOLS & STREETLAMPS
   // =========================================================================
-  // A) Broadleaf Shade Trees (3-part composite geometry: trunk + 2 canopy spheres merged?
-  // Wait: trunk is brown and canopy is green, so 2 InstancedMeshes sharing transforms!)
   const trunkGeo = trackGeo(new THREE.CylinderGeometry(0.18, 0.28, 2.4, 7));
   trunkGeo.translate(0, 1.2, 0);
   const trunkMat = trackMat(
@@ -854,50 +1101,52 @@ export function buildLandscape(
 
   const canopyMat = trackMat(
     new THREE.MeshStandardMaterial({
-      color: 0xffffff, // tinted per-instance via setColorAt
+      color: 0xffffff,
       roughness: 0.82,
       metalness: 0.0,
     }),
   );
 
   const treeCoords: [number, number, number][] = [];
-  // Boulevard & avenue street trees
-  for (let x = -200; x <= 200; x += 13) {
-    if (Math.abs(x - -67) > 8 && Math.abs(x - 67) > 8) {
-      treeCoords.push([x, -79, 1.0]); // North median
+  // Boulevard & south perimeter street trees
+  for (let x = -264; x <= 264; x += 14) {
+    if (
+      Math.abs(x - -87.5) > 8 &&
+      Math.abs(x - 87.5) > 8
+    ) {
+      treeCoords.push([x, -81.5, 1.0]); // North median
       treeCoords.push([x, -68.5, 0.95]);
-      treeCoords.push([x, 77.5, 0.9]);
+      treeCoords.push([x, 89.5, 0.92]);
     }
   }
   avenueXs.forEach((ax) => {
-    for (let z = -64; z <= 72; z += 14) {
-      if (Math.abs(z - 12) > 5) {
-        treeCoords.push([ax - 7.8, z, 0.9]);
-        treeCoords.push([ax + 7.8, z, 0.9]);
+    for (let z = -64; z <= 84; z += 14) {
+      if (Math.abs(z - 21) > 5) {
+        treeCoords.push([ax - 5.2, z, 0.88]);
+        treeCoords.push([ax + 5.2, z, 0.88]);
       }
     }
   });
-  // Courtyard & Park tree clusters
+  // Courtyard & Park tree clusters carefully placed clear of towers & courts
   const parkClusterSeeds: [number, number][] = [
     // Zone S
-    [-190, -64], [-172, -62], [-164, -44], [-112, -56], [-100, -64],
-    [-186, -42], [-86, -42], [-172, 6], [-118, 6], [-84, 6],
-    [-190, 22], [-190, 48], [-82, 22], [-82, 48], [-146, 56], [-116, 70], [-92, 68],
+    [-254, -64], [-226, -64], [-152, -62], [-104, -64], [-254, -36],
+    [-162, -26], [-126, -24], [-254, 12], [-98, 14], [-254, 30], [-254, 62],
+    [-98, 30], [-98, 56], [-194, 66], [-152, 64], [-122, 82],
     // Zone C
-    [-54, -64], [-52, -42], [-8, -56], [8, -56], [52, -64], [52, -42],
-    [-54, 4], [-22, 6], [28, -14], [50, -14], [52, 6],
-    [-52, 22], [-44, 38], [-48, 56], [-34, 68], [-12, 68], [16, 68], [46, 68],
-    [52, 24], [24, 24], [-28, 22],
+    [-76, -38], [-22, -38], [22, -44], [76, -38], [-76, -12],
+    [-28, -14], [38, -14], [74, -14], [-74, 12], [74, 12],
+    [-74, 30], [-62, 58], [-44, 70], [-20, 74], [24, 76], [68, 72], [74, 30],
     // Zone N
-    [82, -64], [104, -64], [168, -64], [190, -64], [104, -40], [168, -40],
-    [82, 5], [126, 6], [166, 6], [190, 5],
-    [82, 54], [110, 54], [124, 70], [168, 70], [190, 56], [190, 70],
+    [100, -64], [134, -64], [218, -64], [254, -64], [150, -34], [218, -34],
+    [100, 12], [158, 12], [220, 12], [254, 12],
+    [100, 62], [144, 64], [164, 80], [226, 80], [254, 62],
   ];
   parkClusterSeeds.forEach(([tx, tz], idx) => {
-    const jitterX = ((idx * 37) % 7) - 3;
-    const jitterZ = ((idx * 53) % 7) - 3;
+    const jitterX = ((idx * 37) % 5) - 2;
+    const jitterZ = ((idx * 53) % 5) - 2;
     treeCoords.push([tx + jitterX, tz + jitterZ, 1.05]);
-    treeCoords.push([tx - jitterZ * 0.8 + 3.5, tz + jitterX * 0.8 + 2.5, 0.82]);
+    treeCoords.push([tx - jitterZ * 0.7 + 3.0, tz + jitterX * 0.7 + 2.2, 0.82]);
   });
 
   const trunkInst = new THREE.InstancedMesh(
@@ -939,12 +1188,12 @@ export function buildLandscape(
 
   // B) Poolside Tropical Palms
   const palmPositions: [number, number][] = [
-    [-162, -10], [-152, -10], [-126, -10], [-116, -10],
-    [-162, 6], [-120, 6], [-178, 56], [-156, 56],
-    [0, -37], [14, -37], [28, -37], [2, -19], [26, -19],
-    [-18, 28], [-2, 26], [16, 28], [-16, 52], [4, 54],
-    [120, -31], [144, -31], [158, -14], [134, 8], [160, 8],
-    [130, 56], [166, 58],
+    [-218, -5], [-200, -5], [-164, -5], [-152, -5],
+    [-212, 13], [-168, 13], [-234, 64], [-210, 64],
+    [-8, -32], [12, -35], [32, -35], [10, -14], [34, -14],
+    [-26, 38], [-4, 36], [20, 38], [-22, 62], [6, 62],
+    [164, -30], [188, -30], [214, -10], [190, 12], [218, 12],
+    [172, 64], [216, 64],
   ];
   const palmTrunkGeo = trackGeo(new THREE.CylinderGeometry(0.12, 0.22, 4.6, 6));
   palmTrunkGeo.translate(0, 2.3, 0);
@@ -987,11 +1236,11 @@ export function buildLandscape(
 
   // C) Poolside White Umbrellas / Parasols
   const parasolPositions: [number, number][] = [
-    [-152, -7], [-142, -7], [-130, -7], [-120, -7],
-    [-176, 68], [-168, 69], [-160, 68],
-    [4, -34], [14, -34], [24, -34],
-    [-18, 49], [-10, 50], [4, 48], [16, 46],
-    [126, -29], [136, -29], [146, -11], [154, -10],
+    [-200, -2], [-188, -2], [-174, -2], [-162, -2],
+    [-232, 78], [-222, 79], [-212, 78],
+    [6, -34], [18, -34], [30, -34],
+    [-22, 58], [-12, 60], [6, 58], [20, 56],
+    [164, -28], [176, -28], [188, -28], [200, -4],
   ];
   const poleGeo = trackGeo(new THREE.CylinderGeometry(0.04, 0.04, 2.3, 6));
   poleGeo.translate(0, 1.15, 0);
@@ -1027,13 +1276,13 @@ export function buildLandscape(
 
   // D) Streetlamps (emissive glow controlled by TimeOfDay)
   const lampCoords: [number, number][] = [];
-  for (let x = -195; x <= 195; x += 26) {
-    lampCoords.push([x, -79]);
-    lampCoords.push([x, 12]);
+  for (let x = -255; x <= 255; x += 30) {
+    lampCoords.push([x, -81.5]);
+    lampCoords.push([x, 21]);
   }
   avenueXs.forEach((ax) => {
-    for (let z = -56; z <= 64; z += 30) {
-      lampCoords.push([ax + 7.2, z]);
+    for (let z = -58; z <= 76; z += 32) {
+      lampCoords.push([ax + 5.2, z]);
     }
   });
   const lampPostGeo = trackGeo(new THREE.CylinderGeometry(0.08, 0.12, 4.8, 6));
@@ -1124,7 +1373,6 @@ export function buildLandscape(
     cabin.position.set(-0.2, 1.15, 0);
     cg.add(cabin);
 
-    // 4 wheels
     [
       [1.2, 0.32, 0.85],
       [1.2, 0.32, -0.85],
@@ -1136,7 +1384,6 @@ export function buildLandscape(
       cg.add(w);
     });
 
-    // Headlights
     [-0.55, 0.55].forEach((lz) => {
       const hl = new THREE.Mesh(carHeadlightGeo, carHeadlightMat);
       hl.position.set(1.96, 0.6, lz);
@@ -1155,15 +1402,15 @@ export function buildLandscape(
     cars.push({ group: cg, axis, lanePos, minLimit, maxLimit, speed, dir });
   };
 
-  // Boulevard cars (Eastbound z=-74.5, Westbound z=-83.5)
-  for (let i = 0; i < 8; i++) {
-    spawnCar('x', -73.5, -180 + i * 50, -215, 215, 11 + (i % 3) * 2.5, 1, i);
-    spawnCar('x', -84.5, -160 + i * 50, -215, 215, 12 + (i % 2) * 3, -1, i + 2);
+  // Boulevard cars (Eastbound z=-75.5, Westbound z=-87.5)
+  for (let i = 0; i < 10; i++) {
+    spawnCar('x', -75.5, -250 + i * 54, -275, 275, 11.5 + (i % 3) * 2.5, 1, i);
+    spawnCar('x', -87.5, -225 + i * 54, -275, 275, 12.5 + (i % 2) * 3, -1, i + 2);
   }
-  // Avenue cars on vertical cross streets
-  [-67, 67].forEach((ax, idx) => {
-    spawnCar('z', ax - 2.4, -40 + idx * 30, -68, 82, 8.5, 1, idx + 1);
-    spawnCar('z', ax + 2.4, 40 - idx * 25, -68, 82, 9.5, -1, idx + 4);
+  // Avenue cars on vertical cross streets (x = -268, -87.5, 87.5, 268)
+  avenueXs.forEach((ax, idx) => {
+    spawnCar('z', ax - 2.2, -50 + idx * 24, -70, 92, 8.5, 1, idx + 1);
+    spawnCar('z', ax + 2.2, 50 - idx * 22, -70, 92, 9.5, -1, idx + 4);
   });
 
   return {

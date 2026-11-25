@@ -38,20 +38,20 @@ export const Minimap: React.FC<MinimapProps> = ({ x, z, yaw, zoneName }) => {
         style={{ height: 84 }}
       >
         {/* Zone S, C, N blocks */}
-        <rect x={-198} y={-69} width={122} height={77} rx={3} fill="#25362c" />
-        <rect x={-198} y={16} width={122} height={59} rx={3} fill="#2a422f" />
+        <rect x={-261} y={-69} width={168} height={86.5} rx={3} fill="#25362c" />
+        <rect x={-261} y={24.5} width={168} height={63.5} rx={3} fill="#2a422f" />
 
-        <rect x={-59} y={-69} width={118} height={77} rx={3} fill="#25362c" />
-        <rect x={-59} y={16} width={118} height={59} rx={3} fill="#22382c" />
+        <rect x={-82} y={-69} width={164} height={86.5} rx={3} fill="#25362c" />
+        <rect x={-82} y={24.5} width={164} height={63.5} rx={3} fill="#22382c" />
 
-        <rect x={75} y={-69} width={122} height={77} rx={3} fill="#25362c" />
-        <rect x={75} y={16} width={122} height={59} rx={3} fill="#213838" />
+        <rect x={93} y={-69} width={168} height={86.5} rx={3} fill="#25362c" />
+        <rect x={93} y={24.5} width={168} height={63.5} rx={3} fill="#213838" />
 
         {/* Pools highlights */}
-        <rect x={-152} y={-7} width={38} height={10} rx={3} fill="#2ca6be" opacity={0.8} />
-        <rect x={-8} y={-32} width={44} height={10} rx={3} fill="#2ca6be" opacity={0.8} />
-        <ellipse cx={-3} cy={40} rx={22} ry={11} fill="#2ca6be" opacity={0.8} />
-        <rect x={115} y={-28} width={34} height={9} rx={3} fill="#2ca6be" opacity={0.8} />
+        <rect x={-202} y={1} width={44} height={10} rx={3} fill="#2ca6be" opacity={0.85} />
+        <rect x={-5} y={-31.5} width={46} height={9} rx={3} fill="#2ca6be" opacity={0.85} />
+        <ellipse cx={-4} cy={51} rx={27} ry={12} fill="#2ca6be" opacity={0.85} />
+        <rect x={159} y={-26.5} width={32} height={9} rx={3} fill="#2ca6be" opacity={0.85} />
 
         {/* 9 Towers */}
         {TOWERS.map((t) => {
@@ -64,13 +64,13 @@ export const Minimap: React.FC<MinimapProps> = ({ x, z, yaw, zoneName }) => {
         })}
 
         {/* Zone letters */}
-        <text x={-136} y={48} fill="rgba(255,255,255,0.45)" fontSize={18} fontWeight={700} textAnchor="middle">
+        <text x={-177} y={62} fill="rgba(255,255,255,0.45)" fontSize={22} fontWeight={700} textAnchor="middle">
           S
         </text>
-        <text x={0} y={66} fill="rgba(255,255,255,0.45)" fontSize={18} fontWeight={700} textAnchor="middle">
+        <text x={0} y={76} fill="rgba(255,255,255,0.45)" fontSize={22} fontWeight={700} textAnchor="middle">
           C
         </text>
-        <text x={136} y={48} fill="rgba(255,255,255,0.45)" fontSize={18} fontWeight={700} textAnchor="middle">
+        <text x={177} y={62} fill="rgba(255,255,255,0.45)" fontSize={22} fontWeight={700} textAnchor="middle">
           N
         </text>
 
