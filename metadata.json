@@ -1,0 +1,8 @@
+{
+  "name": "Masteri Trinity Square · 3D FPS Explorer",
+  "description": "Interactive 3D architectural free-fly explorer faithfully modeling Masteri Trinity Square across Zones S, C, and N.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

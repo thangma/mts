@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  html,
+  body,
+  #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    background-color: #0b111a;
+    color: #f8fafc;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.font-mono-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom thin range input for flight speed without heavy browser chrome */
+input[type='range'].flight-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.16);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type='range'].flight-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e2b872;
+  cursor: pointer;
+  border: 2px solid #0f172a;
+}
+
+input[type='range'].flight-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e2b872;
+  cursor: pointer;
+  border: 2px solid #0f172a;
+}
